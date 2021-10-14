@@ -10,6 +10,9 @@
 #include <utility>
 #include <vector>
 #include "Point.hpp"
+#include <iostream>       // std::cout
+#include <queue>          // std::priority_queue
+#include <functional>     // std::greater
 
 template <size_t N, typename ElemType>
 class KDTree {
@@ -372,15 +375,42 @@ const ElemType &KDTree<N, ElemType>::at(const Point<N> &pt) const {
 
 template <size_t N, typename ElemType>
 ElemType KDTree<N, ElemType>::knn_value(const Point<N> &key, size_t k) const {
-  // TODO(me): Fill this in.
-  ElemType new_element;
+  
+  std::vector<ElemType> values = knn_query(key, k);
+  std::pair<int, ElemType> p;
+  std::priority_queue<std::pair<int,ElemType>,std::vector<std::pair<int, ElemType>>,std::greater<std::pair<int, ElemType>>> pq;
+  for (int i = 0; i < values.size(); i++)
+  {
+      pq.push(std::make_pair(std::count(values.begin(), values.end(), values[i]) - 1, values[i]));
+  }
+  
+  ElemType new_element = pq.top().second;
   return new_element;
 }
 
 template <size_t N, typename ElemType>
 std::vector<ElemType> KDTree<N, ElemType>::knn_query(const Point<N> &key, size_t k) const {
-  // TODO(me): Fill this in.
+  std::vector<value_type> rhsv;
+  KDTreeNode* root_aux = this->root;
+  PreOrden(*root_aux, rhsv);
+  double dis = 0;
   std::vector<ElemType> values;
+  std::priority_queue<std::pair<double, value_type>, std::vector<std::pair<double, value_type>>> pq;
+  for (int i = 0; i < rhsv.size(); i++)
+  {
+      
+      //std::pair<double, value_type> p;
+      if (rhsv[i].first!=key)
+      {
+          dis = rhsv[i].first.distancia(key);
+          pq.push(make_pair(dis, rhsv[i]));
+      }
+  }
+  for (int i = 0; i < k; i++)
+  {
+      values.push_back(pq.top().second);
+      pq.pop();
+  }
   return values;
 }
 
